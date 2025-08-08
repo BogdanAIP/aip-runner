@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aip.dev/schema/v1.0",
+  "$id": "https://aip.dev/schema/v1.1",
   "title": "AIP Manifest",
   "type": "object",
   "required": ["aip_version", "project", "agents"],
@@ -42,7 +42,16 @@
               "properties": {
                 "name": { "type": "string" },
                 "type": { "type": "string", "enum": ["api", "builtin", "custom", "file"] },
-                "provider": { "type": "string" }
+                "provider": { "type": "string", "enum": ["mcp", "api", "builtin", "custom", "file"] },
+                "x-mcp": {
+                  "type": "object",
+                  "properties": {
+                    "server": { "type": "string", "description": "Идентификатор/имя MCP-сервера" },
+                    "tool": { "type": "string", "description": "Имя инструмента на MCP-сервере" },
+                    "params": { "type": "object", "description": "Параметры по умолчанию" }
+                  },
+                  "additionalProperties": true
+                }
               },
               "additionalProperties": false
             }
