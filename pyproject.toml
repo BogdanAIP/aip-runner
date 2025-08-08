@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aip-runner"
+version = "0.1.0"
+description = "CLI runtime for Agent Interaction Protocol (AIP)"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "[Bogdan Gayduk]" }]
+keywords = ["AIP", "agents", "LLM", "workflow", "CLI"]
+
+dependencies = ["jsonschema>=4.0"]
+
+[project.scripts]
+aip-runner = "aip_runner.cli:main"
+
+[tool.setuptools.package-data]
+"aip_runner" = ["schema/*.json"]
