@@ -9,13 +9,25 @@ description = "CLI runtime for Agent Interaction Protocol (AIP)"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-authors = [{ name = "[Bogdan Gayduk]" }]
+authors = [{ name = "Bogdan Gayduk" }]
 keywords = ["AIP", "agents", "LLM", "workflow", "CLI"]
+dependencies = [
+  "jsonschema>=4.0"
+]
 
-dependencies = ["jsonschema>=4.0"]
-
+# Консольная команда: после установки можно запускать `aip-runner ...`
 [project.scripts]
 aip-runner = "aip_runner.cli:main"
 
+# Указываем, что исходники лежат в каталоге src/
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+# Ищем пакеты внутри src/
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Кладём схему и локали в пакет (чтобы ставились через pip)
 [tool.setuptools.package-data]
-"aip_runner" = ["schema/*.json"]
+"aip_runner" = ["schema/*.json", "locales/*.json"]
+
