@@ -22,23 +22,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps (+ try install package)
+      - name: Install deps (and package if available)
         run: |
           set -e
           python -m pip install --upgrade pip
-          # базовая зависимость, чтобы cli/валидация работали
           pip install jsonschema
-          # если есть pyproject.toml — ставим пакет (чтобы была команда `aip-runner`)
           if [ -f "pyproject.toml" ]; then
-            echo "pyproject.toml found → installing package in editable mode"
+            echo "pyproject.toml found → installing package (editable)"
             pip install -e .
           else
-            echo "pyproject.toml not found → will try fallback to 'python src/aip_runner/cli.py'"
+            echo "pyproject.toml not found → will use 'python src/aip_runner/cli.py'"
           fi
 
       - name: Detect manifest path
         id: manifest
-        shell: bash
         run: |
           set -e
           if [ -f "examples/article_pipeline.aip.json" ]; then
@@ -54,7 +51,6 @@ jobs:
 
       - name: Detect CLI entrypoint
         id: cli
-        shell: bash
         run: |
           set -e
           if command -v aip-runner >/dev/null 2>&1; then
@@ -68,9 +64,11 @@ jobs:
       - name: Validate manifest
         run: |
           set -e
-          ${ { steps.cli.outputs.cli } } validate "${{ steps.manifest.outputs.manifest }}"
+          echo "CLI: ${{ steps.cli.outputs.cli }}"
+          echo "MANIFEST: ${{ steps.manifest.outputs.manifest }}"
+          ${{ steps.cli.outputs.cli }} validate "${{ steps.manifest.outputs.manifest }}"
 
       - name: Demo run (no LLM)
         run: |
           set -e
-          ${ { steps.cli.outputs.cli } } run "${{ steps.manifest.outputs.manifest }}"
+          ${{ steps.cli.outputs.cli }} run "${{ steps.manifest.outputs.manifest }}"
