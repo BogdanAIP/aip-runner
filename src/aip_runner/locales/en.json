@@ -1,0 +1,15 @@
+{
+  "app_name": "AIP Runner",
+  "using_lang": "Using language: {lang}",
+  "validation_ok": "✅ Manifest validation OK",
+  "manifest_validation_failed": "❌ Manifest validation failed:\n{error}\n",
+  "file_not_found": "File not found: {path}",
+  "json_error": "JSON error in {path}: {error}",
+  "scenario_start": "🚀 Scenario \"{project}\"",
+  "no_steps": "⚠️ No workflow steps found in the manifest.",
+  "unknown_agent": "Step {index}: unknown agent id \"{agent_id}\"",
+  "step_header": "— Step {index}: {agent_name} → {task}",
+  "artifact_saved": "💾 Artifact saved: {path}",
+  "saving_artifact_failed": "Failed to save artifact to {path}: {error}",
+  "done": "🎉 Done."
+}
