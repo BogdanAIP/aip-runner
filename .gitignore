@@ -156,6 +156,18 @@ crew_ai.yaml
 # Прочее
 ################################################################################
 ENV/
+# AIP Runner outputs
+artifacts/
+logs/
+tmp/
+*.tmp
+crewai.yaml
+crew_ai.yaml
+
+# OS / IDE junk
+.DS_Store
+.vscode/
+
 env/
 venv/
 .venv/
