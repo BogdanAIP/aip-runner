@@ -1,0 +1,35 @@
+name: Gitignore check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  check-gitignore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create test files
+        run: |
+          mkdir -p artifacts logs tmp .vscode
+          touch artifacts/test.txt
+          touch logs/run.log
+          touch tmp/file.tmp
+          touch crewai.yaml
+          touch .DS_Store
+          touch .vscode/settings.json
+
+      - name: Verify ignore rules
+        run: |
+          set -e
+          echo "Checking ignored files..."
+          git check-ignore -v artifacts/test.txt
+          git check-ignore -v logs/run.log
+          git check-ignore -v tmp/file.tmp
+          git check-ignore -v crewai.yaml
+          git check-ignore -v .DS_Store
+          git check-ignore -v .vscode/settings.json
+          echo "All listed files are ignored ✅"
