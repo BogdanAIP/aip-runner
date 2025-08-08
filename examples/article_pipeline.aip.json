@@ -1,0 +1,62 @@
+{
+  "aip_version": "1.0",
+  "project": {
+    "name": "Article Pipeline",
+    "description": "A simple multi-agent pipeline to draft, edit, and publish an article.",
+    "status": "active",
+    "tags": ["content", "demo", "aip"]
+  },
+  "agents": [
+    {
+      "id": "writer",
+      "name": "WriterAgent",
+      "role": "writer",
+      "goal": "Draft an article on a given topic"
+    },
+    {
+      "id": "editor",
+      "name": "EditorAgent",
+      "role": "editor",
+      "goal": "Review the article for errors and improve style"
+    },
+    {
+      "id": "publisher",
+      "name": "PublisherAgent",
+      "role": "publisher",
+      "goal": "Publish the final article and save the result"
+    }
+  ],
+  "workflow": {
+    "type": "sequential",
+    "steps": [
+      {
+        "agent": "writer",
+        "task": "Write an article about the benefits of sleep in Markdown. End your reply with the marker '###OUTPUT###' and repeat the final draft after it.",
+        "expected_output": "Article draft in Markdown"
+      },
+      {
+        "agent": "editor",
+        "task": "Edit the draft: fix errors, improve clarity and style, keep Markdown formatting. End your reply with '###OUTPUT###' and put the improved version after it.",
+        "expected_output": "Edited article in Markdown"
+      },
+      {
+        "agent": "publisher",
+        "task": "Convert the final Markdown into plain text (no Markdown). End your reply with '###OUTPUT###' and put the final plain text after it.",
+        "expected_output": "Plain text ready to save as article.txt"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "filename": "article.txt",
+      "description": "Final plain-text version of the article",
+      "mime_type": "text/plain",
+      "generated_by": "publisher"
+    }
+  ],
+  "metadata": {
+    "author": "AIP Community",
+    "license": "MIT",
+    "encryption": "none"
+  }
+}
