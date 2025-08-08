@@ -5,9 +5,14 @@ on:
     branches: [ main, master ]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-and-demo:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,15 +22,55 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install deps (+ try install package)
         run: |
+          set -e
           python -m pip install --upgrade pip
+          # базовая зависимость, чтобы cli/валидация работали
           pip install jsonschema
+          # если есть pyproject.toml — ставим пакет (чтобы была команда `aip-runner`)
+          if [ -f "pyproject.toml" ]; then
+            echo "pyproject.toml found → installing package in editable mode"
+            pip install -e .
+          else
+            echo "pyproject.toml not found → will try fallback to 'python src/aip_runner/cli.py'"
+          fi
+
+      - name: Detect manifest path
+        id: manifest
+        shell: bash
+        run: |
+          set -e
+          if [ -f "examples/article_pipeline.aip.json" ]; then
+            echo "manifest=examples/article_pipeline.aip.json" >> "$GITHUB_OUTPUT"
+            echo "Using manifest: examples/article_pipeline.aip.json"
+          elif [ -f "примеры/article_pipeline.aip.json" ]; then
+            echo "manifest=примеры/article_pipeline.aip.json" >> "$GITHUB_OUTPUT"
+            echo "Using manifest: примеры/article_pipeline.aip.json"
+          else
+            echo "::error::Manifest file not found. Expected at 'examples/article_pipeline.aip.json' or 'примеры/article_pipeline.aip.json'."
+            exit 1
+          fi
+
+      - name: Detect CLI entrypoint
+        id: cli
+        shell: bash
+        run: |
+          set -e
+          if command -v aip-runner >/dev/null 2>&1; then
+            echo "cli=aip-runner" >> "$GITHUB_OUTPUT"
+            echo "Will use CLI: aip-runner"
+          else
+            echo "cli=python src/aip_runner/cli.py" >> "$GITHUB_OUTPUT"
+            echo "Console script not found → fallback to 'python src/aip_runner/cli.py'"
+          fi
 
       - name: Validate manifest
         run: |
-          python src/aip_runner/cli.py validate examples/article_pipeline.aip.json
+          set -e
+          ${ { steps.cli.outputs.cli } } validate "${{ steps.manifest.outputs.manifest }}"
 
       - name: Demo run (no LLM)
         run: |
-          python src/aip_runner/cli.py run examples/article_pipeline.aip.json
+          set -e
+          ${ { steps.cli.outputs.cli } } run "${{ steps.manifest.outputs.manifest }}"
