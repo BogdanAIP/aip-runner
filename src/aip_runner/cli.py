@@ -6,7 +6,7 @@ from pathlib import Path
 from jsonschema import validate, ValidationError
 
 from .i18n import I18n
-from .mcp_client import client as mcp_client  # MCP stub client
+from .mcp_client import client as mcp_client, load_config as load_mcp_config  # MCP
 
 # Путь к схеме рядом с кодом пакета
 BASE = Path(__file__).resolve().parent
@@ -14,15 +14,6 @@ SCHEMA_PATH = BASE / "schema" / "aip.schema.json"
 
 
 def _find_mcp_tool(agent: dict):
-    """
-    Возвращает описание первого инструмента провайдера MCP у агента,
-    либо None, если такого нет.
-    Ожидается структура:
-      tool = {
-        "provider": "mcp",
-        "x-mcp": { "server": "...", "tool": "...", "params": {...} }
-      }
-    """
     for t in agent.get("tools", []) or []:
         if t.get("provider") == "mcp":
             xmcp = t.get("x-mcp", {}) or {}
@@ -53,7 +44,7 @@ def do_validate(manifest_path: Path, i18n: I18n) -> None:
     print(i18n.t("validation_ok"))
 
 
-def do_run(manifest_path: Path, i18n: I18n) -> None:
+def do_run(manifest_path: Path, i18n: I18n, mcp_enabled: bool, mcp_cfg: dict) -> None:
     manifest = load_json(manifest_path, i18n)
     schema = load_json(SCHEMA_PATH, i18n)
     try:
@@ -72,7 +63,6 @@ def do_run(manifest_path: Path, i18n: I18n) -> None:
         print(i18n.t("no_steps"))
         return
 
-    # Демонстрационный прогон без LLM
     agents = {a["id"]: a for a in manifest.get("agents", [])}
     context = ""
     for i, step in enumerate(steps, start=1):
@@ -84,9 +74,16 @@ def do_run(manifest_path: Path, i18n: I18n) -> None:
         task = step["task"]
         print(i18n.t("step_header", index=i, agent_name=agent["name"], task=task))
 
-        # Если у агента есть MCP-инструмент — вызовем заглушку и выведем результат
+        # MCP: если у агента есть MCP-инструмент — сообщим и вызовем заглушку
         mcp = _find_mcp_tool(agent)
         if mcp and mcp.get("server") and mcp.get("tool"):
+            print(textwrap.indent(i18n.t("mcp_will_call", server=mcp["server"], tool=mcp["tool"]), "   "))
+            if mcp_enabled:
+                if mcp_cfg:
+                    # пока конфиг не используется заглушкой, но мы подтверждаем факт его наличия
+                    print(textwrap.indent(i18n.t("mcp_config_loaded", count=len(mcp_cfg)), "   "))
+                else:
+                    print(textwrap.indent(i18n.t("mcp_config_missing"), "   "))
             result = mcp_client.call(mcp["server"], mcp["tool"], mcp.get("params"))
             print(textwrap.indent(result, "   "))
             context += f"\n\n### MCP RESULT ({agent['name']})\n{result}"
@@ -102,11 +99,14 @@ def do_run(manifest_path: Path, i18n: I18n) -> None:
 
 def main():
     parser = argparse.ArgumentParser(prog="aip-runner", description="AIP CLI (i18n + MCP stub)")
-    # Общий флаг языка
     parser.add_argument("--lang", choices=["en", "ru"], help="UI language (en|ru)")
 
-    sub = parser.add_subparsers(dest="cmd", required=True)
+    # Новые флаги MCP
+    parser.add_argument("--mcp", action="store_true",
+                        help="Enable MCP mode (reads config from env AIP_MCP_SERVERS unless --mcp-config provided)")
+    parser.add_argument("--mcp-config", help="MCP servers config as JSON string (overrides AIP_MCP_SERVERS env)")
 
+    sub = parser.add_subparsers(dest="cmd", required=True)
     pv = sub.add_parser("validate", help="Validate manifest")
     pv.add_argument("manifest", help="Path to AIP JSON")
 
@@ -117,12 +117,17 @@ def main():
     i18n = I18n(args.lang)
     print(i18n.t("using_lang", lang=i18n.lang))
 
+    # MCP конфиг (только если включён)
+    mcp_cfg = load_mcp_config(args.mcp_config) if args.mcp else {}
+    if args.mcp:
+        print(i18n.t("mcp_enabled"))
+
     manifest_path = Path(getattr(args, "manifest", ""))
 
     if args.cmd == "validate":
         do_validate(manifest_path, i18n)
     elif args.cmd == "run":
-        do_run(manifest_path, i18n)
+        do_run(manifest_path, i18n, mcp_enabled=args.mcp, mcp_cfg=mcp_cfg)
     else:
         parser.print_help()
 
