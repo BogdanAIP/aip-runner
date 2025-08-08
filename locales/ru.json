@@ -1,0 +1,15 @@
+{
+  "app_name": "AIP Runner",
+  "using_lang": "Язык интерфейса: {lang}",
+  "validation_ok": "✅ Валидация манифеста: OK",
+  "manifest_validation_failed": "❌ Ошибка валидации манифеста:\n{error}\n",
+  "file_not_found": "Файл не найден: {path}",
+  "json_error": "Ошибка JSON в {path}: {error}",
+  "scenario_start": "🚀 Сценарий «{project}»",
+  "no_steps": "⚠️ В манифесте нет шагов workflow.",
+  "unknown_agent": "Шаг {index}: неизвестный агент id «{agent_id}»",
+  "step_header": "— Шаг {index}: {agent_name} → {task}",
+  "artifact_saved": "💾 Сохранён артефакт: {path}",
+  "saving_artifact_failed": "Не удалось сохранить артефакт в {path}: {error}",
+  "done": "🎉 Готово."
+}
