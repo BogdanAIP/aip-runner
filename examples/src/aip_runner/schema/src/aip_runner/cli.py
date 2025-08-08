@@ -1,4 +1,3 @@
-feat: add minimal CLI (validate & run demo)
 import sys
 import json
 import argparse
