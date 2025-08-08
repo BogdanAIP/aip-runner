@@ -1,3 +1,4 @@
+[![Gitignore check](https://github.com/BogdanAIP/aip-runner/actions/workflows/ignore-check.yml/badge.svg)](https://github.com/BogdanAIP/aip-runner/actions/workflows/ignore-check.yml) 
 # AIP Runner (CLI) — Agent Interaction Protocol
 
 **AIP Runner** is a small CLI to execute **AIP (Agent Interaction Protocol)** manifests.  
