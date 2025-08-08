@@ -1,34 +1,41 @@
 [![Gitignore check](https://github.com/BogdanAIP/aip-runner/actions/workflows/ignore-check.yml/badge.svg)](https://github.com/BogdanAIP/aip-runner/actions/workflows/ignore-check.yml) 
-# AIP Runner (CLI) — Agent Interaction Protocol
+# AIP Runner — Agent Interaction Protocol (CLI)
 
-**AIP Runner** is a small CLI to execute **AIP (Agent Interaction Protocol)** manifests.  
+A tiny command-line runtime for **AIP (Agent Interaction Protocol)** manifests.  
 Goal: make multi-agent LLM scenarios **portable, reproducible, and easy to share**.
 
-> Status: **early draft / work in progress**. We’re building this together with the community.
+> Status: **early draft / work in progress** — contributions welcome!
 
-## Why
-- Today each framework (CrewAI, AutoGen, LangGraph, etc.) uses its own format.
-- Reproducing or migrating scenarios is painful.
-- AIP aims to be a **common manifest** (JSON) + a **simple runner** to try scenarios without rewriting code.
+---
 
-## What this CLI will do
-- ✅ Validate AIP manifests against JSON Schema
-- ✅ Run simple `sequential` workflows in **demo mode** (no LLM required)
-- ⏳ Optional LLM mode (OpenAI and others) — planned
-- ⏳ Converters (e.g., AIP → CrewAI/AutoGen) — planned
-- ⏳ Tools (api/file/custom), logs, artifacts — planned
+## What is this?
 
-## Quick start (dev)
+- **AIP manifest (JSON):** describes a scenario — **project**, **agents**, **workflow** steps, and **artifacts**.
+- **AIP Runner (CLI):** validates a manifest and can execute simple `sequential` workflows in **demo mode** (no LLM required).
+- Designed to be **framework-agnostic** and **easy to migrate** to other stacks later.
+
+Planned features:
+- Optional LLM mode (OpenAI and others)
+- Converters (e.g. AIP → CrewAI/AutoGen)
+- Tools (api/file/custom) and artifacts handling
+- **MCP** (Model Context Protocol) integration as a standard tool provider
+
+---
+
+## Quick start
+
+### Requirements
+- Python **3.8+**
+- Git (optional)
+
+### Clone and run
 ```bash
-# 1) Create and activate a virtual env
+git clone https://github.com/<your-username>/aip-runner.git
+cd aip-runner
+
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux:
+source .venv/bin/activate
 
-# 2) Install in editable mode (package config will be added soon)
-pip install -e .
-
-# 3) Validate and run (demo)
-aip-runner validate examples/article_pipeline.aip.json
-aip-runner run examples/article_pipeline.aip.json --no-llm
-
-
+pip install -e .              # installs the console script `aip-runner`
