@@ -1,0 +1,25 @@
+name: Bug report
+description: Report an issue in the CLI, schema, or examples
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Clearly describe the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps and files to reproduce.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: OS, Python version, CLI command, logs
