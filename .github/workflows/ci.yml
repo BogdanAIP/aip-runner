@@ -90,6 +90,70 @@ jobs:
         if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
         run: ${{ steps.cli.outputs.cli }} run examples/article_with_artifacts.aip.json
 
+              # --- Artifacts check (deep debug) ---
+      - name: Validate manifest (artifacts demo)
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: ${{ steps.cli.outputs.cli }} validate examples/article_with_artifacts.aip.json
+
+      - name: Clean artifacts dir
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: rm -rf artifacts || true
+
+      - name: Show manifest (artifacts demo)
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: |
+          echo "----- examples/article_with_artifacts.aip.json -----"
+          cat examples/article_with_artifacts.aip.json
+          echo
+          python - << 'PY'
+          import json, sys
+          data=json.load(open("examples/article_with_artifacts.aip.json","r",encoding="utf-8"))
+          agents={a["id"] for a in data.get("agents",[])}
+          arts=data.get("artifacts") or []
+          print("Agent IDs:", sorted(agents))
+          print("Artifacts:", [a.get("filename") for a in arts])
+          for a in arts:
+              print("  artifact:", a.get("filename"), "generated_by:", a.get("generated_by"))
+              if a.get("generated_by") not in agents:
+                  print("  ** WARNING: generated_by does not match any agent id! **")
+          PY
+
+      - name: Verify runner code has artifact saver
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: |
+          python - << 'PY'
+          import inspect, aip_runner.cli as c
+          print("CLI file:", c.__file__)
+          src=open(c.__file__, "r", encoding="utf-8").read()
+          has_save="_save_artifact" in src
+          print("Has _save_artifact():", has_save)
+          start=src.find("# === Сохранение артефактов ===")
+          print("Save block present:", start != -1)
+          print("---- tail of cli.py ----")
+          print("\n".join(src.splitlines()[-120:]))
+          PY
+
+      - name: Demo run (with artifacts)
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: |
+          set -e
+          echo "---- running aip-runner ----"
+          ${{ steps.cli.outputs.cli }} run examples/article_with_artifacts.aip.json | tee run.log
+          echo "---- repo root after run ----"
+          ls -la
+          echo "---- artifacts dir ----"
+          ls -la artifacts || (echo "no artifacts dir" && true)
+          echo "---- grep artifact messages ----"
+          (grep -i "artifact" run.log || true)
+
+      - name: Check artifact exists
+        if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
+        run: |
+          set -e
+          test -f artifacts/article.txt || (echo "::error::artifacts/article.txt not found"; ls -la artifacts || true; exit 1)
+          echo "OK: artifacts/article.txt created"
+
+
       - name: Check artifact exists
         if: ${{ hashFiles('examples/article_with_artifacts.aip.json') != '' }}
         run: |
