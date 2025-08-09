@@ -1,0 +1,20 @@
+{
+  "aip_version": "1.1",
+  "project": { "name": "Article with Artifacts", "status": "active" },
+  "agents": [
+    { "id": "writer", "name": "WriterAgent", "role": "writer", "goal": "Draft an article" },
+    { "id": "editor", "name": "EditorAgent", "role": "editor", "goal": "Improve clarity and style" },
+    { "id": "publisher", "name": "PublisherAgent", "role": "publisher", "goal": "Publish final text" }
+  ],
+  "workflow": {
+    "type": "sequential",
+    "steps": [
+      { "agent": "writer", "task": "Write article in Markdown. End with '###OUTPUT###' and repeat the final draft." },
+      { "agent": "editor", "task": "Edit for clarity. End with '###OUTPUT###' and put improved version." },
+      { "agent": "publisher", "task": "Convert to plain text. End with '###OUTPUT###' and put final text." }
+    ]
+  },
+  "artifacts": [
+    { "filename": "article.txt", "mime_type": "text/plain", "generated_by": "publisher" }
+  ]
+}
