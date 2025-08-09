@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main, master ]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +22,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install deps (and package if available)
         run: |
@@ -40,10 +42,8 @@ jobs:
           set -e
           if [ -f "examples/article_pipeline.aip.json" ]; then
             echo "manifest=examples/article_pipeline.aip.json" >> "$GITHUB_OUTPUT"
-            echo "Using manifest: examples/article_pipeline.aip.json"
           elif [ -f "примеры/article_pipeline.aip.json" ]; then
             echo "manifest=примеры/article_pipeline.aip.json" >> "$GITHUB_OUTPUT"
-            echo "Using manifest: примеры/article_pipeline.aip.json"
           else
             echo "::error::Manifest file not found. Expected at 'examples/article_pipeline.aip.json' or 'примеры/article_pipeline.aip.json'."
             exit 1
@@ -55,31 +55,22 @@ jobs:
           set -e
           if command -v aip-runner >/dev/null 2>&1; then
             echo "cli=aip-runner" >> "$GITHUB_OUTPUT"
-            echo "Will use CLI: aip-runner"
           else
             echo "cli=python src/aip_runner/cli.py" >> "$GITHUB_OUTPUT"
-            echo "Console script not found → fallback to 'python src/aip_runner/cli.py'"
           fi
 
       - name: Validate manifest
-        run: |
-          set -e
-          echo "CLI: ${{ steps.cli.outputs.cli }}"
-          echo "MANIFEST: ${{ steps.manifest.outputs.manifest }}"
-          ${{ steps.cli.outputs.cli }} validate "${{ steps.manifest.outputs.manifest }}"
+        run: ${{ steps.cli.outputs.cli }} validate "${{ steps.manifest.outputs.manifest }}"
 
       - name: Demo run (no LLM)
-        run: |
-          set -e
-          ${{ steps.cli.outputs.cli }} run "${{ steps.manifest.outputs.manifest }}"
-                - name: Clean artifacts dir
-        run: |
-          rm -rf artifacts || true
+        run: ${{ steps.cli.outputs.cli }} run "${{ steps.manifest.outputs.manifest }}"
+
+      # --- Artifacts check ---
+      - name: Clean artifacts dir
+        run: rm -rf artifacts || true
 
       - name: Demo run (with artifacts)
-        run: |
-          set -e
-          ${{ steps.cli.outputs.cli }} run examples/article_pipeline.aip.json
+        run: ${{ steps.cli.outputs.cli }} run "${{ steps.manifest.outputs.manifest }}"
 
       - name: Check artifact exists
         run: |
@@ -87,3 +78,14 @@ jobs:
           test -f artifacts/article.txt || (echo "::error::artifacts/article.txt not found"; ls -la artifacts || true; exit 1)
           echo "OK: artifacts/article.txt created"
 
+      # --- MCP demo ---
+      - name: Validate manifest (MCP demo)
+        run: ${{ steps.cli.outputs.cli }} validate examples/mcp_read.aip.json
+
+      - name: Demo run (MCP demo, no real MCP)
+        run: ${{ steps.cli.outputs.cli }} run examples/mcp_read.aip.json
+
+      - name: Demo run (MCP demo with env config)
+        env:
+          AIP_MCP_SERVERS: '{"filesystem":{"cmd":"mcp-filesystem --root ./","transport":"stdio"}}'
+        run: ${{ steps.cli.outputs.cli }} --mcp run examples/mcp_read.aip.json
